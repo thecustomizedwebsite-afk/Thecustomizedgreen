@@ -1,25 +1,45 @@
 import { useState } from 'react';
-import { Phone, Mail, MapPin, Send, CheckCircle, Clock } from 'lucide-react';
+import { Phone, Mail, MapPin, Send, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import Reveal from '@/components/Reveal';
 import { COMPANY, SERVICES } from '@/data/content';
+import { supabase } from '@/lib/supabase';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
       setError('Please fill in your name, email, and message.');
       return;
     }
-    setSubmitted(true);
+    setSubmitting(true);
+    setError('');
+    try {
+      const { error: rpcError } = await supabase.functions.invoke('send-contact-email', {
+        body: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          service: form.service,
+          message: form.message,
+        },
+      });
+      if (rpcError) throw rpcError;
+      setSubmitted(true);
+    } catch {
+      setError('Something went wrong while sending your message. Please try again or call us directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -222,10 +242,20 @@ export default function Contact() {
 
                     <button
                       type="submit"
-                      className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-700 text-cream rounded-full font-600 hover:bg-forest-800 transition-all duration-300 hover:shadow-lg"
+                      disabled={submitting}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-forest-700 text-cream rounded-full font-600 hover:bg-forest-800 transition-all duration-300 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <Send className="w-4 h-4" />
-                      Send Message
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Send Message
+                        </>
+                      )}
                     </button>
                   </form>
                 </>
