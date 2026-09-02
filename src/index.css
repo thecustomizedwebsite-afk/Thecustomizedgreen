@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-sans bg-cream text-forest-900 antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .reveal {
+    opacity: 0;
+  }
+  .reveal.reveal-visible {
+    animation: fadeUp 0.7s ease-out forwards;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-forest-50;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-forest-300 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-forest-500;
+}
